@@ -1,0 +1,83 @@
+# Machine notes, backups and local agent/editor settings.
+private/
+.claude/
+.codex/
+.vscode/
+.idea/
+
+# Credentials and local environment settings. Keep examples free of real secrets.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.keystore
+credentials*.json
+settings.local.json
+
+# Python environments, bytecode and caches.
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+envs/
+.conda/
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Runtime state and generated output.
+*.pid
+*.log
+*.hold
+speech_gate.lock
+hook_off
+speak_stop
+queue_say_*.txt
+codex_say_*.txt
+*.jsonl
+/logs/
+/tmp/
+/temp/
+/recordings/
+/transcripts/
+/WisperLocal/
+
+# Downloaded models and package/build output.
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.whl
+*.egg-info/
+/build/
+/dist/
+*.zip
+*.7z
+*.tar
+*.gz
+
+# Recordings stay local. Only the four reviewed reference clips are included.
+*.wav
+*.mp3
+*.flac
+*.m4a
+*.ogg
+*.opus
+*.mp4
+*.webm
+!text-to-speech/voices/S_004168.wav
+!text-to-speech/voices/S_014437.wav
+!text-to-speech/voices/S_018536.wav
+!text-to-speech/voices/S_020502.wav
+
+# Editor backups and Windows filesystem metadata.
+*.bak
+*.tmp
+*~
+Thumbs.db
+Desktop.ini

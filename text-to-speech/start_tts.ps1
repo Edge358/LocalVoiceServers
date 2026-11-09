@@ -1,0 +1,56 @@
+# Start the Chatterbox text-to-speech server (port 8009) hidden, if not already running.
+# Code runs from this folder; logs and the PID file go to the state folder.
+param(
+    # 127.0.0.1 = this computer only. 0.0.0.0 lets other computers on your network connect.
+    # Set the LOCALVOICE_TTS_HOST environment variable to change the default.
+    [string]$BindHost = $(if ($env:LOCALVOICE_TTS_HOST) { $env:LOCALVOICE_TTS_HOST } else { "127.0.0.1" }),
+    [int]$Port = 8009,
+    [string]$CondaEnv = "localvoice",
+    [string]$PythonExe = ""
+)
+
+$ErrorActionPreference = "Stop"
+. (Join-Path (Split-Path $PSScriptRoot -Parent) "server_process.ps1")
+$dir = $PSScriptRoot
+$root = Join-Path $env:LOCALAPPDATA "WisperLocal"   # fixed path, shared with client apps
+$state = Join-Path $root "tts"
+New-Item -ItemType Directory -Force -Path $state | Out-Null
+$startLog = Join-Path $state "start_last.log"
+$stamp = Get-Date -Format s
+
+function Find-CondaPython([string]$envName) {
+    @(
+        (Join-Path $env:USERPROFILE "miniconda3\envs\$envName\python.exe"),
+        (Join-Path $env:USERPROFILE "anaconda3\envs\$envName\python.exe"),
+        (Join-Path $env:USERPROFILE ".conda\envs\$envName\python.exe"),
+        "C:\ProgramData\miniconda3\envs\$envName\python.exe",
+        "C:\ProgramData\anaconda3\envs\$envName\python.exe"
+    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+}
+
+$listening = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+if ($listening) {
+    foreach ($owner in @($listening.OwningProcess | Select-Object -Unique)) {
+        $null = Get-LocalVoiceProcess -ProcessId $owner -Module "tts_server" -AppDirectory $dir -Port $Port
+    }
+    "Start skipped ${stamp}: already listening on $Port (PID $($listening[0].OwningProcess))." |
+        Out-File $startLog -Encoding utf8
+    exit 0
+}
+
+if (-not $PythonExe) { $PythonExe = Find-CondaPython $CondaEnv }
+if (-not $PythonExe -or -not (Test-Path $PythonExe)) {
+    "Start failed ${stamp}: python.exe for conda environment '$CondaEnv' not found." |
+        Out-File $startLog -Encoding utf8
+    exit 1
+}
+
+$p = Start-Process -FilePath $PythonExe `
+    -ArgumentList "-m", "uvicorn", "tts_server:app", "--host", $BindHost, "--port", $Port.ToString(), "--app-dir", ('"' + $dir + '"') `
+    -WorkingDirectory $dir -WindowStyle Hidden -PassThru `
+    -RedirectStandardOutput (Join-Path $state "server_out.log") `
+    -RedirectStandardError (Join-Path $state "server_err.log")
+
+$p.Id | Out-File (Join-Path $state "tts_server.pid") -Encoding ascii
+"Start started ${stamp}: PID $($p.Id), code in $dir, listening on ${BindHost}:$Port." |
+    Out-File $startLog -Encoding utf8

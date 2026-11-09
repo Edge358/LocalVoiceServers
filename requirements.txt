@@ -1,0 +1,13 @@
+# One Python 3.11 environment for all three servers. Versions tested together on Windows 11.
+# PyTorch comes from its own package index, built for CUDA 12.4.
+--extra-index-url https://download.pytorch.org/whl/cu124
+torch==2.6.0+cu124
+torchaudio==2.6.0+cu124
+chatterbox-tts==0.1.7
+transformers==5.2.0
+huggingface_hub==1.24.0
+faster-whisper==1.2.1
+ctranslate2==4.6.3
+fastapi==0.139.2
+uvicorn==0.51.0
+python-multipart==0.0.32

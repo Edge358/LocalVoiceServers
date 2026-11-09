@@ -1,0 +1,11 @@
+# Keep Windows source and documentation as CRLF on disk.
+# Git stores normalized text and restores these endings on checkout.
+* text=auto eol=crlf
+
+# Shell scripts and CI files use LF.
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Reference audio must remain byte-for-byte intact.
+*.wav binary
